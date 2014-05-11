@@ -1,0 +1,321 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <!-- support for mobile touch devices -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1, minimal-ui">
+    <link href="../dist/bootstrap.min.css" rel="stylesheet">
+<style>
+
+</style>
+
+</head>
+<body>
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="https://github.com/chafey/cornerstone">Cornerstone</a>
+        </div>
+        <ul class="nav navbar-nav navbar-right">
+            <form class="navbar-form">
+                <div class="form-group">
+                    <label for="inputAPIKey" class="">API Key</label>
+                    <input type="text" class="from-control" id="inputAPIKey" placeholder="">
+                </div>
+                <div class="form-group">
+                    <label for="selectQIDOServer" class="">QIDO Server</label>
+                    <select class="form-control" id="selectQIDOServer">
+                        <option value="http://mckesson.hackathon.siim.org/hmirest/qido/studies">McKesson</option>
+                        <option value="http://agfa.hackathon.siim.org/wado/studies">Agfa</option>
+                    </select>
+                </div>
+             </form>
+        </ul>
+    </div>
+</nav>
+
+<div class='main'>
+    <div class="container-fluid">
+        <div class="row">
+            <form id="searchForm" class="form-inline" role="form">
+                <button type="submit" class="btn btn-primary">Search</button>
+                <div class="form-group">
+                    <label for="inputName" class="">Name</label>
+                    <input type="text" class="from-control" id="inputName" placeholder="">
+                </div>
+                <div class="form-group">
+                    <label for="inputPatientId" class="">Patient ID</label>
+                    <input type="text" class="from-control" id="inputPatientId" placeholder="">
+                </div>
+                <div class="form-group">
+                    <label for="inputAccessionNumber" class="">Acc #</label>
+                    <input type="text" class="from-control" id="inputAccessionNumber" placeholder="">
+                </div>
+                <div class="form-group">
+                    <label for="selectStudyDate" class="">Study Date</label>
+                    <select class="form-control" id="selectStudyDate">
+                        <option value="This Year">This Year</option>
+                        <option value="Today">Today</option>
+                        <option value="Yesterday">Yesterday</option>
+                        <option value="This Week">This Week</option>
+                        <option value="This Month">This Month</option>
+                        <option value="Last Month">Last Month</option>
+                        <option value="Last Year">Last Year</option>
+                        <option value="Custom">Custom</option>
+                    </select>
+                </div>
+
+            </form>
+        </div>
+        <div class="row">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Patient Name</th>
+                    <th>Patient ID</th>
+                    <th>Accession#</th>
+                    <th>Study Date</th>
+                    <th>Modality</th>
+                    <th>Study Description</th>
+                    <th># Images</th>
+                </tr>
+                </thead>
+                <tbody id="studyListData">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+
+<script src="../dist/jquery.min.js"></script>
+<script src="../dist/bootstrap.min.js"></script>
+<script src="../dist/moment.js"></script>
+
+<script>
+
+    var qidoRootUrl;
+    var studyDateRange = '20140401-20140501'; // default to date range of mckesson data
+
+
+    $('#selectQIDOServer').change(function(event) {
+        qidoRootUrl = $('#selectQIDOServer').val();
+    });
+
+    function setStudyDateRange(start, end)
+    {
+        var startStr = start.format("YYYYMMDD");
+        var endStr = end.format("YYYYMMDD");
+        if(startStr === endStr) {
+            studyDateRange = startStr;
+        } else {
+            studyDateRange = startStr + '-' + endStr;
+        }
+    }
+
+    function setStudyDateRangeFromSelect()
+    {
+        var val = $('#selectStudyDate').val();
+        var now = moment();
+        var start;
+        var end;
+        if(val === "Today") {
+            start = now.clone();
+            end = now.clone();
+        } else if (val === "Yesterday") {
+            start = now.clone().subtract(1, "d");
+            end = now.clone().subtract(1, "d");
+        } else if (val === "This Week") {
+            start = now.clone().weekday(0);
+            end = now.clone().weekday(7);
+        } else if (val === "This Month") {
+            start = now.clone().startOf('month');
+            end = now.clone().endOf('month');
+        } else if (val === "Last Month") {
+            start = now.clone().subtract("months", 1).startOf('month');
+            end = now.clone().startOf('month');
+        } else if (val === "This Year") {
+            start = now.clone().startOf('year');
+            end = now.clone().endOf('year');
+        } else if (val === "Last Year") {
+            start = now.clone().subtract("years", 1).startOf('year');
+            end = start.clone().endOf('year');
+        } else if (val === "Custom") {
+            //alert('custom study date range not implemented yet');
+            // TODO: Pop dialog to allow user to enter study date
+            start = moment('2014-04-16');
+            end = moment('2014-04-17');
+        }
+        setStudyDateRange(start, end);
+    }
+
+    $('#selectStudyDate').change(function(event) {
+        setStudyDateRangeFromSelect();
+    });
+
+    function getValue(obj)
+    {
+        if(obj === undefined) {
+            return "undefined";
+        }
+        return obj.Value[0];
+    }
+
+    function displayResults(results) {
+        $('#studyListData').empty();
+        for(var i=0; i < results.length; i++) {
+            var study = results[i];
+
+            var studyRow = '<tr><td>' +
+                    getValue(study["00100010"]).Alphabetic + '</td><td>' +
+                    getValue(study["00100020"])+ '</td><td>' +
+                    getValue(study["00080050"]) + '</td><td>' +
+                    getValue(study["00080020"]) + '</td><td>' +
+                    getValue(study["00080061"]) + '</td><td>' +
+                    getValue(study["00081030"]) + '</td><td>' +
+                    getValue(study["00201208"]) + '</td><td>' +
+                    '</tr>';
+            var studyRowElement = $(studyRow).appendTo('#studyListData');
+        }
+    }
+
+    function qidoSearch(params)
+    {
+        var url = qidoRootUrl;
+        var first = true;
+        for(var p in params) {
+            if(first) {
+                first = false;
+                url += "?";
+            }
+            else {
+                url += "&";
+            }
+            url += p;
+            url += "="
+            url += encodeURIComponent(params[p]);
+        }
+        url += '&includefield=all';
+
+        // put API keys here:
+        var apiKeys = {
+            'http://mckesson.hackathon.siim.org/hmirest/qido/studies' : '',
+            'http://agfa.hackathon.siim.org/wado/studies' : ''
+        };
+
+        var apikey = $('#inputAPIKey').val();
+        if(apikey.length === 0) {
+            apikey = apiKeys[qidoRootUrl];
+        }
+
+
+        $.ajax({
+           url : url,
+            headers : {
+                'Accept' : 'application/json', // BUG: McKesson docs say they support application/json but are currently ignoring it and always returning multipart
+                'X-API-KEY': apikey}
+        }).success(function(data, textStatus, request) {
+            // NOTE: One vendor is incorrectly returning application/json as Multipart MIME so we have to check for that here
+            // and parse it to make it work
+            var contentType = request.getResponseHeader('Content-Type');
+            if(contentType === undefined) {
+                var studies = JSON.parse(data);
+                displayResults(studies);
+            }
+            var boundaryStartIndex = contentType.indexOf('boundary="');
+            if(boundaryStartIndex === -1) {
+                var studies = JSON.parse(data);
+                displayResults(studies);
+            }
+
+            console.log("WARNING: Buggy implementation returning multi-part mime boundary detected, attempting to compensate");
+
+            boundaryStartIndex += 10;
+            // get the boundary string
+            var boundaryEndIndex = contentType.indexOf('"', boundaryStartIndex);
+            var boundary = contentType.substring(boundaryStartIndex, boundaryEndIndex);
+            var boundaryDelimiter = '--' + boundary;
+
+            //console.log('boundary:' +  boundary);
+
+            var results = [];
+
+            var multiPartStart = data.indexOf(boundaryDelimiter);
+            while(multiPartStart !== -1) {
+                var multiPartEnd = data.indexOf(boundaryDelimiter, multiPartStart + boundaryDelimiter.length);
+                var part = data.substring(multiPartStart + boundaryDelimiter.length, multiPartEnd);
+                var partStart = part.indexOf('\n');
+                partStart = part.indexOf('\n', partStart + 1);
+                partStart = part.indexOf('\n', partStart + 1);
+                var jsonString = part.substring(partStart + 1);
+                // Compensate for invalid JSON which one vendor is returning
+                if(jsonString.indexOf('}}{') > -1) {
+                    jsonString = jsonString.replace(/}}{/g, '},');
+                }
+                results.push(jsonString);
+
+                multiPartStart = data.indexOf(boundaryDelimiter, multiPartEnd + boundaryDelimiter.length);
+            }
+
+            // Now create a JSON array from the results
+            var studyResults = "[";
+            for(var i=0; i < results.length; i++)
+            {
+                if(i > 0) {
+                    studyResults += ","
+                }
+                studyResults += results[i];
+            }
+            studyResults += "]";
+            //console.log(studyResults);
+            var studies = JSON.parse(studyResults);
+            displayResults(studies);
+        });
+    }
+
+    function addQueryParam(query, name, value)
+    {
+        // if no value do nothing
+        if(value === undefined)
+        {
+            return;
+        }
+
+        // trim the whitespace from the value
+        value = $.trim(value);
+
+        // if zero length string do nothing
+        if(value.length === 0) {
+            return;
+        }
+
+        // url encode
+        query[name] = value;
+    }
+
+    function doSearch()
+    {
+        var query = {};
+        addQueryParam(query, 'PatientName', $('#inputName').val());
+        addQueryParam(query, 'PatientID', $('#inputPatientId').val());
+        addQueryParam(query, 'AccessionNumber', $('#inputAccessionNumber').val());
+        addQueryParam(query, 'StudyDate', studyDateRange);
+        qidoSearch(query);
+    }
+
+    $('#searchForm').submit(function(event) {
+        doSearch();
+        return false; // prevent form submission
+    });
+
+    $(document).ready(function() {
+        qidoRootUrl = $('#selectQIDOServer').val();
+        setStudyDateRangeFromSelect();
+        doSearch();
+    });
+
+
+</script>
+
+</html>

@@ -1,0 +1,38 @@
+{
+  "name": "cornerstoneQIDORSWorklist",
+  "version": "0.1.0",
+  "description": "Cornerstone QIDO-RS Worklist",
+  "main": "",
+  "ignore": [
+    "examples",
+    "src",
+    "test",
+    "gruntfile.js",
+    "package.json",
+    "README.md",
+    ".gitignore"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.1.1",
+    "fontawesome": "~4.0.3",
+    "bootstrap-datepicker": "~1.3.0",
+    "moment": "~2.6.0"
+  },
+  "devDependencies": {},
+  "license": "MIT",
+  "authors": [
+    "Chris Hafey"
+  ],
+  "homepage": "https://github.com/chafey/cornerstoneQIDORSWorklist",
+  "keywords": [
+    "DICOM",
+    "medical",
+    "imaging",
+    "QIDO",
+    "cornerstone"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chafey/cornerstoneQIDORSWorklist.git"
+  }
+}
