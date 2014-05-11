@@ -6,6 +6,28 @@
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1, minimal-ui">
     <link href="../dist/bootstrap.min.css" rel="stylesheet">
 <style>
+    html, body {
+        height: 100%;
+    }
+
+    #wrap {
+        min-height: 100%;
+    }
+
+    #main {
+        overflow:auto;
+        padding-bottom:150px; /* this needs to be bigger than footer height*/
+    }
+
+
+
+    .footer {
+        position: relative;
+        margin-top: -150px; /* negative value of footer height */
+        height: 150px;
+        clear:both;
+        padding-top:20px;
+    }
 
 </style>
 
@@ -32,69 +54,74 @@
                     <label for="inputAPIKey" class="">API Key</label>
                     <input type="text" class="from-control" id="inputAPIKey" placeholder="">
                 </div>
-
-
              </form>
         </ul>
     </div>
 </nav>
 
-<div class='main'>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="alert alert-success" id="alert">Ready</div>
-        </div>
-        <div class="row">
-            <form id="searchForm" class="form-inline" role="form">
-                <button type="submit" class="btn btn-primary">Search</button>
-                <div class="form-group">
-                    <label for="inputName" class="">Name</label>
-                    <input type="text" class="from-control" id="inputName" placeholder="">
-                </div>
-                <div class="form-group">
-                    <label for="inputPatientId" class="">Patient ID</label>
-                    <input type="text" class="from-control" id="inputPatientId" placeholder="">
-                </div>
-                <div class="form-group">
-                    <label for="inputAccessionNumber" class="">Acc #</label>
-                    <input type="text" class="from-control" id="inputAccessionNumber" placeholder="">
-                </div>
-                <div class="form-group">
-                    <label for="selectStudyDate" class="">Study Date</label>
-                    <select class="form-control" id="selectStudyDate">
-                        <option value="This Year">This Year</option>
-                        <option value="Today">Today</option>
-                        <option value="Yesterday">Yesterday</option>
-                        <option value="This Week">This Week</option>
-                        <option value="This Month">This Month</option>
-                        <option value="Last Month">Last Month</option>
-                        <option value="Last Year">Last Year</option>
-                        <option value="Custom">Custom</option>
-                    </select>
-                </div>
+<div id="wrap">
 
-            </form>
+    <div class='main'>
+        <div class="container-fluid">
+            <div class="row">
+                <form id="searchForm" class="form-inline" role="form">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <div class="form-group">
+                        <label for="inputName" class="">Name</label>
+                        <input type="text" class="from-control" id="inputName" placeholder="">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputPatientId" class="">Patient ID</label>
+                        <input type="text" class="from-control" id="inputPatientId" placeholder="">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputAccessionNumber" class="">Acc #</label>
+                        <input type="text" class="from-control" id="inputAccessionNumber" placeholder="">
+                    </div>
+                    <div class="form-group">
+                        <label for="selectStudyDate" class="">Study Date</label>
+                        <select class="form-control" id="selectStudyDate">
+                            <option value="This Year">This Year</option>
+                            <option value="Today">Today</option>
+                            <option value="Yesterday">Yesterday</option>
+                            <option value="This Week">This Week</option>
+                            <option value="This Month">This Month</option>
+                            <option value="Last Month">Last Month</option>
+                            <option value="Last Year">Last Year</option>
+                            <option value="Custom">Custom</option>
+                        </select>
+                    </div>
+
+                </form>
+            </div>
+            <div class="row">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Patient ID</th>
+                        <th>Accession#</th>
+                        <th>Study Date</th>
+                        <th>Modality</th>
+                        <th>Study Description</th>
+                        <th># Images</th>
+                    </tr>
+                    </thead>
+                    <tbody id="studyListData">
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="row">
-            <table class="table table-striped">
-                <thead>
-                <tr>
-                    <th>Patient Name</th>
-                    <th>Patient ID</th>
-                    <th>Accession#</th>
-                    <th>Study Date</th>
-                    <th>Modality</th>
-                    <th>Study Description</th>
-                    <th># Images</th>
-                </tr>
-                </thead>
-                <tbody id="studyListData">
-                </tbody>
-            </table>
-        </div>
+
+
     </div>
-
 </div>
+
+<div class="row footer">
+    <div class="alert alert-success" id="alert">Ready</div>
+</div>
+
+
 </body>
 
 <script src="../dist/jquery.min.js"></script>
@@ -193,12 +220,9 @@
         }
 
 
-
         $('#alert').addClass('alert-success');
         $('#alert').removeClass('alert-danger');
         $('#alert').text('Success (query completed in ' + time + 'ms)');
-
-
 
     }
 
