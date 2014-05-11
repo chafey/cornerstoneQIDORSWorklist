@@ -19,16 +19,21 @@
         <ul class="nav navbar-nav navbar-right">
             <form class="navbar-form">
                 <div class="form-group">
-                    <label for="inputAPIKey" class="">API Key</label>
-                    <input type="text" class="from-control" id="inputAPIKey" placeholder="">
-                </div>
-                <div class="form-group">
                     <label for="selectQIDOServer" class="">QIDO Server</label>
                     <select class="form-control" id="selectQIDOServer">
                         <option value="http://mckesson.hackathon.siim.org/hmirest/qido/studies">McKesson</option>
                         <option value="http://agfa.hackathon.siim.org/wado/studies">Agfa</option>
                     </select>
+                </div><div class="form-group">
+                    <label for="inputRootURL" class="">QIDO-RS Root URL:</label>
+                    <input type="text" size="40" class="from-control" id="inputRootURL" placeholder="">
                 </div>
+                <div class="form-group">
+                    <label for="inputAPIKey" class="">API Key</label>
+                    <input type="text" class="from-control" id="inputAPIKey" placeholder="">
+                </div>
+
+
              </form>
         </ul>
     </div>
@@ -36,6 +41,9 @@
 
 <div class='main'>
     <div class="container-fluid">
+        <div class="row">
+            <div class="alert alert-success" id="alert">Ready</div>
+        </div>
         <div class="row">
             <form id="searchForm" class="form-inline" role="form">
                 <button type="submit" class="btn btn-primary">Search</button>
@@ -95,13 +103,14 @@
 
 <script>
 
-    var qidoRootUrl;
     var studyDateRange = '20140401-20140501'; // default to date range of mckesson data
+    var start = new Date().getTime();
 
 
     $('#selectQIDOServer').change(function(event) {
-        qidoRootUrl = $('#selectQIDOServer').val();
+        $('#inputRootURL').val($('#selectQIDOServer').val());
     });
+
 
     function setStudyDateRange(start, end)
     {
@@ -163,6 +172,10 @@
     }
 
     function displayResults(results) {
+
+        var end = new Date().getTime();
+        var time = end - start;
+
         $('#studyListData').empty();
         for(var i=0; i < results.length; i++) {
             var study = results[i];
@@ -178,11 +191,28 @@
                     '</tr>';
             var studyRowElement = $(studyRow).appendTo('#studyListData');
         }
+
+
+
+        $('#alert').addClass('alert-success');
+        $('#alert').removeClass('alert-danger');
+        $('#alert').text('Success (query completed in ' + time + 'ms)');
+
+
+
+    }
+
+    function displayError(text)
+    {
+        $('#alert').removeClass('alert-success');
+        $('#alert').addClass('alert-danger');
+        $('#alert').text(text);
+
     }
 
     function qidoSearch(params)
     {
-        var url = qidoRootUrl;
+        var url = $("#inputRootURL").val();
         var first = true;
         for(var p in params) {
             if(first) {
@@ -206,15 +236,18 @@
 
         var apikey = $('#inputAPIKey').val();
         if(apikey.length === 0) {
-            apikey = apiKeys[qidoRootUrl];
+            apikey = apiKeys[$('#inputRootURL').val()];
         }
-
+        start = new Date().getTime();
 
         $.ajax({
            url : url,
             headers : {
-                'Accept' : 'application/json', // BUG: McKesson docs say they support application/json but are currently ignoring it and always returning multipart
-                'X-API-KEY': apikey}
+                'Accept' : 'application/json',
+                'X-API-KEY': apikey},
+            statusCode: {
+                401: function() {displayError('Unauthorized')}
+            }
         }).success(function(data, textStatus, request) {
             // NOTE: One vendor is incorrectly returning application/json as Multipart MIME so we have to check for that here
             // and parse it to make it work
@@ -274,6 +307,14 @@
         });
     }
 
+    $( document ).ajaxError(function( event, jqxhr, settings, exception ) {
+        var statusCode = jqxhr.statusCode();
+        var state = jqxhr.state();
+        var text = 'Error: state = ' + state + ', status = ' + statusCode.status + ', statusText = ' + jqxhr.statusText;
+        displayError(text)
+    });
+
+
     function addQueryParam(query, name, value)
     {
         // if no value do nothing
@@ -310,7 +351,7 @@
     });
 
     $(document).ready(function() {
-        qidoRootUrl = $('#selectQIDOServer').val();
+        $('#inputRootURL').val( $('#selectQIDOServer').val());
         setStudyDateRangeFromSelect();
         doSearch();
     });
