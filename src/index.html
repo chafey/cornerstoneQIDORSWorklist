@@ -44,7 +44,7 @@
                     <label for="selectQIDOServer" class="">QIDO Server</label>
                     <select class="form-control" id="selectQIDOServer">
                         <option value="http://mckesson.hackathon.siim.org/hmirest/qido/studies">McKesson</option>
-                        <option value="http://agfa.hackathon.siim.org/wado/studies">Agfa</option>
+                        <option value="http://agfa.hackathon.siim.org/qido/studies">Agfa</option>
                     </select>
                 </div><div class="form-group">
                     <label for="inputRootURL" class="">QIDO-RS Root URL:</label>
@@ -89,6 +89,7 @@
                             <option value="Last Month">Last Month</option>
                             <option value="Last Year">Last Year</option>
                             <option value="Custom">Custom</option>
+                            <option value="None">None</option>
                         </select>
                     </div>
 
@@ -130,7 +131,7 @@
 
 <script>
 
-    var studyDateRange = '20140401-20140501'; // default to date range of mckesson data
+    var studyDateRange = '';// '20140401-20140501'; // default to date range of mckesson data
     var start = new Date().getTime();
 
 
@@ -182,8 +183,11 @@
             // TODO: Pop dialog to allow user to enter study date
             start = moment('2014-04-16');
             end = moment('2014-04-17');
+        } else if (val === "None") {
+            studyDateRange ="";
         }
-        setStudyDateRange(start, end);
+
+    setStudyDateRange(start, end);
     }
 
     $('#selectStudyDate').change(function(event) {
@@ -255,7 +259,7 @@
         // put API keys here:
         var apiKeys = {
             'http://mckesson.hackathon.siim.org/hmirest/qido/studies' : '',
-            'http://agfa.hackathon.siim.org/wado/studies' : ''
+            'http://agfa.hackathon.siim.org/qido/studies' : ''
         };
 
         var apikey = $('#inputAPIKey').val();
