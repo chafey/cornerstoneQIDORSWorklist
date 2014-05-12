@@ -277,61 +277,22 @@
                 401: function() {displayError('Unauthorized')}
             }
         }).success(function(data, textStatus, request) {
-            // NOTE: One vendor is incorrectly returning application/json as Multipart MIME so we have to check for that here
-            // and parse it to make it work
-            var contentType = request.getResponseHeader('Content-Type');
-            if(contentType === undefined) {
-                var studies = JSON.parse(data);
-                displayResults(studies);
-            }
-            var boundaryStartIndex = contentType.indexOf('boundary="');
-            if(boundaryStartIndex === -1) {
-                var studies = JSON.parse(data);
-                displayResults(studies);
-            }
-
-            console.log("WARNING: Buggy implementation returning multi-part mime boundary detected, attempting to compensate");
-
-            boundaryStartIndex += 10;
-            // get the boundary string
-            var boundaryEndIndex = contentType.indexOf('"', boundaryStartIndex);
-            var boundary = contentType.substring(boundaryStartIndex, boundaryEndIndex);
-            var boundaryDelimiter = '--' + boundary;
-
-            //console.log('boundary:' +  boundary);
-
-            var results = [];
-
-            var multiPartStart = data.indexOf(boundaryDelimiter);
-            while(multiPartStart !== -1) {
-                var multiPartEnd = data.indexOf(boundaryDelimiter, multiPartStart + boundaryDelimiter.length);
-                var part = data.substring(multiPartStart + boundaryDelimiter.length, multiPartEnd);
-                var partStart = part.indexOf('\n');
-                partStart = part.indexOf('\n', partStart + 1);
-                partStart = part.indexOf('\n', partStart + 1);
-                var jsonString = part.substring(partStart + 1);
-                // Compensate for invalid JSON which one vendor is returning
-                if(jsonString.indexOf('}}{') > -1) {
-                    jsonString = jsonString.replace(/}}{/g, '},');
+            try {
+                // NOTE: One vendor is incorrectly returning application/json as Multipart MIME so we have to check for that here
+                // and parse it to make it work
+                var contentType = request.getResponseHeader('Content-Type');
+                if(contentType === undefined) {
+                    displayResults(data);
                 }
-                results.push(jsonString);
+                var boundaryStartIndex = contentType.indexOf('boundary="');
+                if(boundaryStartIndex === -1) {
+                    displayResults(data);
+                }
 
-                multiPartStart = data.indexOf(boundaryDelimiter, multiPartEnd + boundaryDelimiter.length);
-            }
-
-            // Now create a JSON array from the results
-            var studyResults = "[";
-            for(var i=0; i < results.length; i++)
+            } catch (err)
             {
-                if(i > 0) {
-                    studyResults += ","
-                }
-                studyResults += results[i];
+                displayError(err);
             }
-            studyResults += "]";
-            //console.log(studyResults);
-            var studies = JSON.parse(studyResults);
-            displayResults(studies);
         });
     }
 
