@@ -41,18 +41,8 @@
         <ul class="nav navbar-nav navbar-right">
             <form class="navbar-form">
                 <div class="form-group">
-                    <label for="selectQIDOServer" class="">QIDO Server</label>
-                    <select class="form-control" id="selectQIDOServer">
-                        <option value="http://mckesson.hackathon.siim.org/hmirest/qido/studies">McKesson</option>
-                        <option value="http://agfa.hackathon.siim.org/qido/studies">Agfa</option>
-                    </select>
-                </div><div class="form-group">
                     <label for="inputRootURL" class="">QIDO-RS Root URL:</label>
-                    <input type="text" size="40" class="from-control" id="inputRootURL" placeholder="">
-                </div>
-                <div class="form-group">
-                    <label for="inputAPIKey" class="">API Key</label>
-                    <input type="text" class="from-control" id="inputAPIKey" placeholder="">
+                    <input type="text" size="80" class="from-control" id="inputRootURL" placeholder="" value="http://localhost:8042/qido-rs/studies">
                 </div>
              </form>
         </ul>
@@ -81,6 +71,7 @@
                     <div class="form-group">
                         <label for="selectStudyDate" class="">Study Date</label>
                         <select class="form-control" id="selectStudyDate">
+                            <option value="None">None</option>
                             <option value="This Year">This Year</option>
                             <option value="Today">Today</option>
                             <option value="Yesterday">Yesterday</option>
@@ -89,7 +80,6 @@
                             <option value="Last Month">Last Month</option>
                             <option value="Last Year">Last Year</option>
                             <option value="Custom">Custom</option>
-                            <option value="None">None</option>
                         </select>
                     </div>
 
@@ -133,12 +123,6 @@
 
     var studyDateRange = '';// '20140401-20140501'; // default to date range of mckesson data
     var start = new Date().getTime();
-
-
-    $('#selectQIDOServer').change(function(event) {
-        $('#inputRootURL').val($('#selectQIDOServer').val());
-    });
-
 
     function setStudyDateRange(start, end)
     {
@@ -221,6 +205,50 @@
                     getValue(study["00201208"]) + '</td><td>' +
                     '</tr>';
             var studyRowElement = $(studyRow).appendTo('#studyListData');
+
+            // hook click on row so we can get image level data
+            $(studyRowElement).on('click', function() {
+
+                var studyUid = getValue(study["0020000D"]);
+
+                var url = $("#inputRootURL").val();
+                url += "/" + studyUid + "/instances";
+
+                $.ajax({
+                    url : url,
+                    headers : {
+                        'Accept' : 'application/json'},
+                    statusCode: {
+                        401: function() {displayError('Unauthorized')}
+                    },
+                    dataType: 'json',
+                    success :function(data, textStatus, request) {
+                        try {
+                            // NOTE: One vendor is incorrectly returning application/json as Multipart MIME so we have to check for that here
+                            // and parse it to make it work
+                            var contentType = request.getResponseHeader('Content-Type');
+                            if(contentType === undefined) {
+                                //displayResults(data);
+                            }
+                            var boundaryStartIndex = contentType.indexOf('boundary="');
+                            if(boundaryStartIndex === -1) {
+                                //displayResults(data);
+                            }
+
+                        } catch (err)
+                        {
+                            displayError(err);
+                        }
+                    },
+                    error : function(xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+
+                });
+
+             });
+
         }
 
 
@@ -254,18 +282,9 @@
             url += "="
             url += encodeURIComponent(params[p]);
         }
-        url += '&includefield=all';
-
-        // put API keys here:
-        var apiKeys = {
-            'http://mckesson.hackathon.siim.org/hmirest/qido/studies' : '',
-            'http://agfa.hackathon.siim.org/qido/studies' : ''
-        };
+        //url += '&includefield=all';
 
         var apikey = $('#inputAPIKey').val();
-        if(apikey.length === 0) {
-            apikey = apiKeys[$('#inputRootURL').val()];
-        }
         start = new Date().getTime();
 
         $.ajax({
@@ -275,7 +294,8 @@
                 'X-API-KEY': apikey},
             statusCode: {
                 401: function() {displayError('Unauthorized')}
-            }
+            },
+            dataType: 'json'
         }).success(function(data, textStatus, request) {
             try {
                 // NOTE: One vendor is incorrectly returning application/json as Multipart MIME so we have to check for that here
@@ -340,7 +360,6 @@
     });
 
     $(document).ready(function() {
-        $('#inputRootURL').val( $('#selectQIDOServer').val());
         setStudyDateRangeFromSelect();
         doSearch();
     });
