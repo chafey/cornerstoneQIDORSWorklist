@@ -1,12 +1,14 @@
 cornerstoneQIDORSWorklist
 =========================
 
-Simple worklist for querying via QIDO-RS
+This project contains a prototype/example worklist for querying via QIDO-RS.  It will issue a QIDO-RS Studies query
+to the specified QIDO-RS Root URL with the filter criteria and show the results.
 
-No documentation yet as I am using this project to help learn/understand QIDO for SIIM Hackathon and just
-sharing it so others can see what I am figuring out.
+You can access this application live [here](https://rawgit.com/chafey/cornerstoneQIDORSWorklist/master/src/index.html)
 
-You can access this application [here](https://rawgit.com/chafey/cornerstoneQIDORSWorklist/master/src/index.html)
+This worklist has been verified to work properly against the
+[Orthanc DICOMWeb implementation](https://github.com/chafey/orthanc-vagrant) using a CORS proxy.  You can find information
+about other [DICOMWeb implementations here](https://github.com/chafey/dicomWeb).
 
 If you need a CORS proxy, try this:
 
