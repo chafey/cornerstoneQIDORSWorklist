@@ -9,9 +9,9 @@ requests are welcome!
 
 
 If you have access to a DICOMWeb implementation, you can try out the QIDO-RS live in your browser
-[here](https://rawgit.com/chafey/cornerstoneQIDORSWorklist/master/src/index.html) by updating the QIDO-RS Root URL.
+[here](http://rawgit.com/chafey/cornerstoneQIDORSWorklist/master/src/index.html) by updating the QIDO-RS Root URL.
 The live version is setup to run "out of the box" against a local [orthanc-vagrant VM](https://github.com/chafey/orthanc-vagrant)
-using a (CORS proxy)[https://www.npmjs.com/package/corsproxy].  You can find information
+using a [CORS proxy](https://www.npmjs.com/package/corsproxy).  You can find information
 about other DICOMWeb Implementations [here](https://github.com/chafey/dicomWeb).
 
 
